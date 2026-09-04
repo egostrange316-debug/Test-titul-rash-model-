@@ -89,6 +89,34 @@ CREATE POLICY "Public insert for question_analytics" ON question_analytics FOR I
 CREATE POLICY "Public read for student_abilities" ON student_abilities FOR SELECT USING (true);
 CREATE POLICY "Public insert for student_abilities" ON student_abilities FOR INSERT WITH CHECK (true);
 
+-- 4. OMR_SCAN_RESULTS
+-- Android ilova tomonidan har bir skanerlangan varaq to'g'ridan-to'g'ri
+-- (backenddan tashqari, mobil qurilmadan) Supabase'ga sinxronlanadigan jadval.
+CREATE TABLE IF NOT EXISTS omr_scan_results (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    device_id TEXT NOT NULL,                      -- Qurilmani ajratib turuvchi ID (ilova tomonidan generatsiya qilinadi)
+    device_scan_id BIGINT NOT NULL,                -- Qurilmadagi mahalliy (Room) skaner ID'si
+    status VARCHAR(20) NOT NULL,                   -- 'SUCCESS' yoki 'KOD_XATO'
+    student_id VARCHAR(50),
+    total_questions INT NOT NULL DEFAULT 30,
+    correct_count INT NOT NULL DEFAULT 0,
+    incorrect_count INT NOT NULL DEFAULT 0,
+    score_percentage NUMERIC(5, 2) DEFAULT 0.0,
+    raw_json TEXT,
+    question_details_json TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
+    UNIQUE(device_id, device_scan_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_omr_scan_results_student_id ON omr_scan_results(student_id);
+CREATE INDEX IF NOT EXISTS idx_omr_scan_results_created_at ON omr_scan_results(created_at DESC);
+
+ALTER TABLE omr_scan_results ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Public read for omr_scan_results" ON omr_scan_results FOR SELECT USING (true);
+CREATE POLICY "Public insert for omr_scan_results" ON omr_scan_results FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public upsert-update for omr_scan_results" ON omr_scan_results FOR UPDATE USING (true) WITH CHECK (true);
+
 -- ========================================================================
 -- HELPER VIEW: ITEM DIFFICULTY SPECTRUM (WRIGHT MAP SUMMARY)
 -- ========================================================================

@@ -21,6 +21,12 @@ interface OmrScanDao {
     @Query("SELECT * FROM omr_scans WHERE id = :id LIMIT 1")
     suspend fun getScanById(id: Long): OmrScanEntity?
 
+    @Query("SELECT * FROM omr_scans WHERE syncedToSupabase = 0 ORDER BY timestamp ASC")
+    suspend fun getUnsyncedScans(): List<OmrScanEntity>
+
+    @Query("UPDATE omr_scans SET syncedToSupabase = 1, supabaseId = :supabaseId WHERE id = :id")
+    suspend fun markSynced(id: Long, supabaseId: String?)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertScan(scan: OmrScanEntity): Long
 

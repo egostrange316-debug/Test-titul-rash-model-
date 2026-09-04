@@ -28,11 +28,21 @@ $$P(X_{ni} = 1 \mid \theta_n, b_i) = \frac{\exp(\theta_n - b_i)}{1 + \exp(\theta
 - **`rasch_sessions`**: Har bir o'tkazilgan test sessiyasi, umumiy talabalar, savollar soni, Cronbach Alfa va Person/Item Separation ishonchliligi.
 - **`question_analytics`**: Har bir savolning $b_i$, $SE$, Infit MSQ, Outfit MSQ, Point-Biserial korrelyatsiyasi va maqomi (`VALID` yoki `FLAGGED`).
 - **`student_abilities`**: Har bir talabaning latent qobiliyati ($\theta_n$), standart xatosi, shaxsiy Infit/Outfit mosligi va persentil o'rni.
+- **`omr_scan_results`**: Android ilova tomonidan har bir skanerlangan varaq **to'g'ridan-to'g'ri qurilmadan** (backend'ni chetlab o'tib) yozadigan jadval. `device_id` + `device_scan_id` bo'yicha upsert qilinadi, shu sababli qurilma qayta sinxronlasa ham dublikat yuzaga kelmaydi.
 
 ### O'rnatish (Supabase SQL Editor orqali):
 1. Supabase Dashboard -> **SQL Editor** bo'limiga kiring.
 2. `backend/schema.sql` fayli mazmunini nusxalang va **Run** tugmasini bosing.
 3. Jadvallar, indekslar va RLS xavfsizlik qoidalari avtomatik shakllanadi.
+
+### Android ilovani Supabase'ga ulash:
+1. Supabase Dashboard -> **Project Settings -> API** bo'limidan `Project URL` va `anon public` kalitni oling (⚠️ `service_role` kalitini ilovaga qo'ymang — u faqat backend uchun).
+2. Repo ildizidagi `.env.example` asosida `.env` fayl yarating (agar hali yo'q bo'lsa) va quyidagilarni to'ldiring:
+   ```
+   SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+   SUPABASE_ANON_KEY=eyJhbGciOi...
+   ```
+3. Ilovani qayta build qiling. `app/src/main/java/com/example/service/SupabaseSyncService.kt` har bir yangi skanerlash natijasini avtomatik ravishda (fon rejimida) `omr_scan_results` jadvaliga yuboradi; "Tarix" (History) ekranidagi bulut ikonkasi orqali qo'lda ham sinxronlash mumkin.
 
 ---
 

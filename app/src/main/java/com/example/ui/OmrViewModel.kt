@@ -18,6 +18,7 @@ import com.example.service.LocalOmrEngine
 import com.example.service.OmrSheetSimulator
 import com.example.service.PdfGenerator
 import com.example.service.SimulatedSheetData
+import com.example.service.SupabaseSyncService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -33,6 +34,14 @@ class OmrViewModel(application: Application) : AndroidViewModel(application) {
     private val database = AppDatabase.getDatabase(application)
     private val repository = ScanRepository(database.omrScanDao())
     private val prefsManager = PreferencesManager(application)
+    private val deviceId = prefsManager.getOrCreateDeviceId()
+
+    /** Supabase URL/kalit .env orqali to'g'ri sozlanganmi. */
+    val isSupabaseConfigured: Boolean
+        get() = SupabaseSyncService.isConfigured
+
+    private val _isSyncing = MutableStateFlow(false)
+    val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
 
     val scansHistory: StateFlow<List<OmrScanEntity>> = repository.allScans
         .stateIn(
@@ -264,8 +273,39 @@ class OmrViewModel(application: Application) : AndroidViewModel(application) {
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 70, out)
             }
             repository.saveScanResult(result, file.absolutePath)
+            // Har bir yangi natijani jimgina (foydalanuvchini kutdirmasdan) Supabase'ga sinxronlashga urinib ko'radi.
+            if (SupabaseSyncService.isConfigured) {
+                repository.syncPendingScans(deviceId)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    /**
+     * Hali Supabase'ga yuborilmagan barcha yozuvlarni qo'lda sinxronlash uchun (masalan, "Tarix" ekranidagi tugma).
+     */
+    fun syncPendingScans(context: Context) {
+        if (!SupabaseSyncService.isConfigured) {
+            Toast.makeText(
+                context,
+                "Supabase sozlanmagan. .env fayliga SUPABASE_URL va SUPABASE_ANON_KEY ni kiriting.",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+        if (_isSyncing.value) return
+
+        _isSyncing.value = true
+        viewModelScope.launch {
+            val summary = withContext(Dispatchers.IO) { repository.syncPendingScans(deviceId) }
+            _isSyncing.value = false
+            val message = when {
+                summary.total == 0 -> "Barcha natijalar allaqachon sinxronlangan"
+                summary.failed == 0 -> "${summary.success} ta natija Supabase'ga muvaffaqiyatli yuborildi"
+                else -> "${summary.success} ta yuborildi, ${summary.failed} ta xatolik yuz berdi"
+            }
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
         }
     }
 
