@@ -1,0 +1,6 @@
+{
+  "name": "OMR Checker",
+  "description": "Maktab va universitet test titul varaqalarini (OMR) avtomatik tekshiruvchi va titul varaqasini A4 PDF ko'rinishida yuklab beruvchi professional tizim",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
