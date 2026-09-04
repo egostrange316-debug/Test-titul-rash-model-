@@ -16,5 +16,7 @@ data class OmrScanEntity(
     val scorePercentage: Double = 0.0,
     val rawJson: String,
     val questionDetailsJson: String? = null,
-    val imagePath: String? = null
+    val imagePath: String? = null,
+    val syncedToSupabase: Boolean = false,
+    val supabaseId: String? = null
 )

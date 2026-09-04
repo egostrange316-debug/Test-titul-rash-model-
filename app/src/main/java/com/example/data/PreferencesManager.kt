@@ -37,7 +37,21 @@ class PreferencesManager(context: Context) {
         }
     }
 
+    /**
+     * Har bir qurilma uchun bir marta generatsiya qilinadigan noyob ID.
+     * Supabase'ga sinxronlashda skanerlarni qurilma bo'yicha ajratish uchun ishlatiladi.
+     */
+    fun getOrCreateDeviceId(): String {
+        var id = prefs.getString(KEY_DEVICE_ID, null)
+        if (id == null) {
+            id = java.util.UUID.randomUUID().toString()
+            prefs.edit().putString(KEY_DEVICE_ID, id).apply()
+        }
+        return id
+    }
+
     companion object {
         private const val KEY_ANSWER_MAP = "key_answer_map"
+        private const val KEY_DEVICE_ID = "key_device_id"
     }
 }

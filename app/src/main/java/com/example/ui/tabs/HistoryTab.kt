@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
@@ -284,6 +285,19 @@ fun HistoryTab(
 
             if (scans.isNotEmpty()) {
                 Spacer(modifier = Modifier.width(6.dp))
+
+                // Sync pending results to Supabase
+                val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
+                IconButton(
+                    enabled = !isSyncing,
+                    onClick = { viewModel.syncPendingScans(context) }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CloudUpload,
+                        contentDescription = "Supabase'ga sinxronlash",
+                        tint = if (isSyncing) Color.Gray else MaterialTheme.colorScheme.primary
+                    )
+                }
 
                 // Export / Share History CSV
                 IconButton(
